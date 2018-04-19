@@ -149,13 +149,13 @@ transparent onPress={() =>
                             <Icon name='book' style={{ fontSize: 50, color: 'green', marginRight: 10 }} />
                             <H3> {item.name}</H3>
                           </Left>
-                    
+                          
                           </CardItem>
                           <CardItem >
                           <Body >
-                           
-                              <Text>{item.aciklama}</Text>
-                            
+                            <Item style={{ flex: 1 }}>
+                              <Text style={{ fontSize: 20, color: 'grey', flex: 1 }}>{item.aciklama}</Text>
+                            </Item>
                               <Text>{item.lang}--{item.lang2}</Text>
                            
                           </Body>

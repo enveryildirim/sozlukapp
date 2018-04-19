@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Container, Header, Content, List, Item, Button, Picker, Label, ListItem, 
-    Form, Text, Icon, Input, Left, Body, Right, Spinner, Switch, FooterTab, Title, Footer, H1, Textarea } from 'native-base';
+    Form, Text, Icon, Input, Left, Body, Right, Spinner, Switch, FooterTab, Title, Footer, H1, H3, Textarea } from 'native-base';
 
 import db from '../data/sozluk';
 import { Col, Row, Grid } from 'react-native-easy-grid';
@@ -17,7 +17,7 @@ class TestForm extends Component {
         
         //const { current, soru, cevap, tip } = this.rastgele();
         //alert(JSON.stringify(t));
-        this.state = { data: t, current: t.kelimeler[0], soru: '', cevap: '', value: '', tip: 0, toplam: 1, btn_active: -1 };
+        this.state = { data: t, current: t.kelimeler[0], soru: '', cevap: '', aciklama: '', value: '', tip: 0, toplam: 1, btn_active: -1 };
     }
 componentWillMount() {
   this.rastgele();
@@ -36,18 +36,22 @@ componentWillMount() {
         const current = k[0].id;
         const soru = k[0].kelime;
         const cevap = k[0].cevap;
-        const tip = this.getRandomInt(4); //Math.floor(Math.random() * Math.floor(4)); 
+        const aciklama = k[0].aciklama ? k[0].aciklama : 'ipucu yok';
+        let tip = this.getRandomInt(4); //Math.floor(Math.random() * Math.floor(4)); 
         let c2 = '';
         let c3 = '';
         let c4 = '';
+        if (k.length < 4) {
+          tip = this.getRandomInt(2);
+        }
         switch (tip) {
           case 0 : 
             this.renderSoru = this.renderA;
-            this.setState({ current: k[0], soru, cevap, tip, value: '' });
+            this.setState({ current: k[0], soru, cevap, tip, value: '', aciklama });
           break;
           case 1 :
             this.renderSoru = this.renderA;
-            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '' });
+            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '', aciklama });
           break;
           case 2 : 
             this.renderSoru = this.renderB;
@@ -56,7 +60,7 @@ componentWillMount() {
             c4 = k[3].cevap;
             c = [cevap, c2, c3, c4];
             c = this.shuffleArray(c);
-            this.setState({ current: k[0], soru, cevap, tip, value: '', btn_active: -1 });
+            this.setState({ current: k[0], soru, cevap, tip, value: '', btn_active: -1, aciklama });
           break;
           case 3: 
             this.renderSoru = this.renderB;
@@ -65,7 +69,7 @@ componentWillMount() {
              c4 = k[3].kelime;
             c = [soru, c2, c3, c4];
             c = this.shuffleArray(c);
-            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '', btn_active: -1 });
+            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '', btn_active: -1, aciklama });
           break;
           default:
             console.log('hata');
@@ -130,17 +134,21 @@ componentWillMount() {
       }
       renderB() {
           return (
-        <Form style={{ marginTop: 10 }}>
-          <Button block style={styles.btnSoru} disabled={this.btnActive(0)} onPress={() => { this.setState({ value: c[0], btn_active: 0 }); }}>
+        <Form style={{ marginTop: 10, flex: 1 }}>
+          <Button info iconLeft block style={styles.btnSoru} disabled={this.btnActive(0)} onPress={() => { this.setState({ value: c[0], btn_active: 0 }); }}>
+         
             <Text>{c[0]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} disabled={this.btnActive(1)} onPress={() => { this.setState({ value: c[1], btn_active: 1 }); }}>
+          <Button info iconLeft block style={styles.btnSoru} disabled={this.btnActive(1)} onPress={() => { this.setState({ value: c[1], btn_active: 1 }); }}>
+        
             <Text>{c[1]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} disabled={this.btnActive(2)} onPress={() => { this.setState({ value: c[2], btn_active: 2 }); }}>
+          <Button info iconLeft block style={styles.btnSoru} disabled={this.btnActive(2)} onPress={() => { this.setState({ value: c[2], btn_active: 2 }); }}>
+        
             <Text>{c[2]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} disabled={this.btnActive(3)} onPress={() => { this.setState({ value: c[3], btn_active: 3 }); }}>
+          <Button info iconLeft block style={styles.btnSoru} disabled={this.btnActive(3)} onPress={() => { this.setState({ value: c[3], btn_active: 3 }); }}>
+        
             <Text>{c[3]}</Text>
           </Button>
     
@@ -170,27 +178,29 @@ componentWillMount() {
                     </Header>
                 <Content padder>
             <Grid>
-            <Item style={{ flex: 1 }}>
+           <Item>
                 <Row style={styles.soru}>
-                
+            
                     <H1 style={styles.soruYazi}>{this.state.soru}</H1>
-                    <Icon name='info' style={{ fontSize: 50, color: '#893520' }} /> 
+                    <Icon name='info' style={{ fontSize: 30, color: 'blue' }} active onPress={() => alert(this.state.aciklama)} /> 
                
                 </Row>
-                </Item>
-                <Row style={{ flex: 1 }}>
+              </Item>
+                <Row>
                     {this.renderSoru()}
                     
                 </Row>
                
             </Grid>
         </Content>
-        <Footer>
-          <FooterTab>
-            <Button full success onPress={() => this.clickCevap()}>
+        <Footer style={{ backgroundColor: 'white' }}>
+     
+            <Button block style={{ flex: 1, borderRadius: 10 }} iconLeft success onPress={() => this.clickCevap()}>
+            <Icon name='arrow-back' />
               <Text>Cevapla</Text>
+      
             </Button>
-          </FooterTab>
+        
         </Footer>
             </Container>
         );
@@ -205,7 +215,9 @@ const styles = StyleSheet.create({
       marginLeft: 5,
     },
     btnSoru: {
-      borderRadius: 30
+      borderRadius: 30,
+      marginBottom: 10
+    
     },
     contenta: {
       flexDirection: 'row',
@@ -217,7 +229,8 @@ const styles = StyleSheet.create({
     },
     soru: {
       justifyContent: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
+      marginTop:10
     },
     a: {
       marginTop: 0
