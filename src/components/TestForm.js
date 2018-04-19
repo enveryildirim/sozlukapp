@@ -17,7 +17,7 @@ class TestForm extends Component {
         
         //const { current, soru, cevap, tip } = this.rastgele();
         //alert(JSON.stringify(t));
-        this.state = { data: t, current: t.kelimeler[0], soru: '', cevap: '', value: '', tip: 0, toplam: 1 };
+        this.state = { data: t, current: t.kelimeler[0], soru: '', cevap: '', value: '', tip: 0, toplam: 1, btn_active: -1 };
     }
 componentWillMount() {
   this.rastgele();
@@ -36,28 +36,41 @@ componentWillMount() {
         const current = k[0].id;
         const soru = k[0].kelime;
         const cevap = k[0].cevap;
-        const tip = this.getRandomInt(2); //Math.floor(Math.random() * Math.floor(4)); 
-        db.updateGosterim(k[0]);
-        if (tip === 0) {
-           this.renderSoru = this.renderA;
-           this.setState({ current: k[0], soru, cevap, tip });
-           return { data: k, current: k[0], soru, cevap, tip, value: '' };
-        } 
+        const tip = this.getRandomInt(4); //Math.floor(Math.random() * Math.floor(4)); 
+        let c2 = '';
+        let c3 = '';
+        let c4 = '';
+        switch (tip) {
+          case 0 : 
             this.renderSoru = this.renderA;
-            
-           /* const a = this.getRandomInt(len);
-            const a2 = this.getRandomInt(len);
-            const a3 = this.getRandomInt(len);
-    
-            const c2 = t.kelimeler[a].kelime;
-            const c3 = t.kelimeler[a2].kelime;
-            const c4 = t.kelimeler[a3].kelime;
+            this.setState({ current: k[0], soru, cevap, tip, value: '' });
+          break;
+          case 1 :
+            this.renderSoru = this.renderA;
+            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '' });
+          break;
+          case 2 : 
+            this.renderSoru = this.renderB;
+            c2 = k[1].cevap;
+            c3 = k[2].cevap;
+            c4 = k[3].cevap;
             c = [cevap, c2, c3, c4];
-            c = this.shuffleArray(c);*/
-            
-            this.setState({ current: [0], soru: cevap, cevap: soru, tip, value: '' });
-            return { current: [0], soru: cevap, cevap: soru, tip };
+            c = this.shuffleArray(c);
+            this.setState({ current: k[0], soru, cevap, tip, value: '', btn_active: -1 });
+          break;
+          case 3: 
+            this.renderSoru = this.renderB;
+             c2 = k[1].kelime;
+             c3 = k[2].kelime;
+             c4 = k[3].kelime;
+            c = [soru, c2, c3, c4];
+            c = this.shuffleArray(c);
+            this.setState({ current: k[0], soru: cevap, cevap: soru, tip, value: '', btn_active: -1 });
+          break;
+          default:
+            console.log('hata');
     }
+  }
 
     clickCikis() {
         Alert.alert(
@@ -71,14 +84,23 @@ componentWillMount() {
           );
     }
     clickCevap() {
-      const { cevap, value, current } = this.state;
+      const { soru, cevap, value, current, tip } = this.state;
+      db.updateGosterim(current);
+      /*if ((tip === 0 || tip === 2) && cevap === value) {
+        alert(`Doğru:${cevap}`);
+        db.updateDogru(current);
+      } else if ((tip === 1 || tip === 3) && soru === value) {
+        alert(`Doğru:${cevap}`);
+        db.updateDogru(current);
+      }*/
       if (cevap === value) {
         alert(`Doğru:${cevap}`);
         db.updateDogru(current);
       } else {
-        alert(`Yanlış:${cevap} -- Dogru:${value}`);
+        alert(`Yanlış:${value} -- Dogru:${cevap}`);
         db.updateYanlis(current);
       }
+      
       this.rastgele();
     }
     
@@ -98,32 +120,27 @@ componentWillMount() {
           </Form>
         );
       }
+      btnActive(d) {
+        const btn_active = this.state.btn_active;
+        if (btn_active === -1) { return false; }
+        if (d === btn_active) {
+            return true; 
+}
+            return false;
+      }
       renderB() {
-        /*const len = this.state.data.kelimeler.length;
-        const soru = this.state.data.kelimeler[this.state.current].kelime;
-        const a1 = this.getRandomInt(len);
-        const a2 = this.getRandomInt(len);
-        const a3 = this.getRandomInt(len);
-
-        const cevap = this.state.data.kelimeler[this.state.current].kelime;
-        const c2 = this.state.data.kelimeler[a1].kelime;
-        const c3 = this.state.data.kelimeler[a2].kelime;
-        const c4 = this.state.data.kelimeler[a3].kelime;
-        let c = [cevap, c2, c3, c4];
-        c = this.shuffleArray(c);*/
-
           return (
         <Form style={{ marginTop: 10 }}>
-          <Button block style={styles.btnSoru} active={this.state.b} onPress={() => this.setState({ value: c[0], b: false, b1: true, b2: true, b3: true })}>
+          <Button block style={styles.btnSoru} disabled={this.btnActive(0)} onPress={() => { this.setState({ value: c[0], btn_active: 0 }); }}>
             <Text>{c[0]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} active={this.state.b1} onPress={() => this.setState({ value: c[0], b: false, b1: false, b2: true, b3: true })}>
+          <Button block style={styles.btnSoru} disabled={this.btnActive(1)} onPress={() => { this.setState({ value: c[1], btn_active: 1 }); }}>
             <Text>{c[1]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} active={this.state.b2} onPress={() => this.setState({ value: c[0], b: false, b1: true, b2: true, b3: true })}>
+          <Button block style={styles.btnSoru} disabled={this.btnActive(2)} onPress={() => { this.setState({ value: c[2], btn_active: 2 }); }}>
             <Text>{c[2]}</Text>
           </Button>
-          <Button block style={styles.btnSoru} active={this.state.b3} onPress={() => this.setState({ value: c[0], b: false, b1: true, b2: true, b3: true })}>
+          <Button block style={styles.btnSoru} disabled={this.btnActive(3)} onPress={() => { this.setState({ value: c[3], btn_active: 3 }); }}>
             <Text>{c[3]}</Text>
           </Button>
     
@@ -162,7 +179,7 @@ componentWillMount() {
                 </Row>
                 </Item>
                 <Row style={{ flex: 1 }}>
-                    {this.renderA()}
+                    {this.renderSoru()}
                     
                 </Row>
                
