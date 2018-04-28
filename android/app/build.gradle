@@ -95,7 +95,7 @@ def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '27.0.3'
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "com.sozlukapp"
@@ -137,6 +137,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-localization')
     compile project(':react-native-vector-icons')
     compile project(':realm')
     compile fileTree(dir: "libs", include: ["*.jar"])

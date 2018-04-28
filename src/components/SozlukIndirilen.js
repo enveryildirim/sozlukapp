@@ -1,41 +1,69 @@
 import React, { Component } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Container, Header, Content, List, Item, Button, Picker, Label, ListItem, 
     Form, Text, Icon, Input, Left, Body, Right, Spinner, Switch, Footer, FooterTab, CardItem, Title, Card, H3, ActionSheet } from 'native-base';
 
-import firebase from 'firebase';
 //import Modal from 'react-native-modal';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import db from '../data/sozluk';
+import db_paylas from '../data/sozluk_paylas';
+
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import firebase from 'firebase';
 
 const BUTTONS = ['Option 0', 'Option 1', 'Option 2', 'Delete', 'Cancel'];
 const DESTRUCTIVE_INDEX = 3;
 const CANCEL_INDEX = 4;
 
-
 class SozlukList extends Component {
     constructor(props) {
         super(props);
-        this.state = { loading: false,
-newModalVisible: false,
-data: db.findAll(),
-name: '',
-desc: '',
-lang: 'en',
-lang2: 'tr',
-       name_error: false };
+       // this.initSozluk();
+       
+        this.state = { loading: false, newModalVisible: false, data: [], name: '', desc: '', lang: 'en', lang2: 'tr' };
+    }
+    componentWillMount() {
+      alert('local olanların elenmesi lazım !!!!!!!!!');
+      const sozlukler = db.findAllIndirilen();
+      sozlukler.forEach(element => {
+       this.loadVerileri(element);
+      });
+    }
+    initSozluk() {
+        firebase.database().ref('sozluks/-LAUEOc96ed0vzlIrzWf')
+        .once('value', (snap) => {
+            alert(JSON.stringify(snap.val().aciklama));
+            
+          //db.initIndirilen(snap.val());
+        });
+    }
+    loadVerileri(item) {
+       this.setState({ loading: false });
+        firebase.database().ref('sozluks')
+        .orderByChild('id')
+        .equalTo(item.id)
+        .once('value', snap => {
+            const { data } = this.state;
+            snap.forEach(e => {
+                const s = db.getSozluk(e.val().id);
+                alert(JSON.stringify(s));
+                if (!s) {
+                data.push(e.val());
+                }
+            });
+        
+        //alert(JSON.stringify(snap.val()));
+        
+        this.setState({ data, loading: false });
+        });
     }
 clickNewSozluk() {
  const { name, desc, lang, lang2 } = this.state;
- if (name === '') {
-   this.setState({ name_error: true });
-   return;
- }
  db.save({ name, desc, lang, lang2 });
- this.setState({ newModalVisible: false, name: '', desc: '', name_error: false });
+ this.setState({ newModalVisible: false, name: '', desc: '' });
  alert('başarıyla oluşturuldu');
+ //this.setState({ data: db.findAll() });
 }
   renderLang() {
   return (
@@ -63,15 +91,13 @@ clickNewSozluk() {
         >
          <KeyboardAwareScrollView>
          <Form style={{ backgroundColor: 'white', borderRadius: 20 }}>
-            <Item error={this.state.name_error}>
+            <Item>
               <Input placeholder="Name" onChangeText={name => this.setState({ name })} value={this.state.name} />
-               {this.state.name_error ? <Icon name='close-circle' /> : null }
             </Item>
             <Item>
-              <Input placeholder="Aciklama (optinatial)" onChangeText={desc => this.setState({ desc })} value={this.state.desc} />
+              <Input placeholder="Aciklama" onChangeText={desc => this.setState({ desc })} value={this.state.desc} />
             </Item>
             <Item last />
-            <Text>Main Language</Text>
             <Picker
               mode="dropdown"
               placeholder="Select One"
@@ -84,7 +110,6 @@ clickNewSozluk() {
               <Item label="Almanca" value="eu" />
 
             </Picker>
-            <Text>Target Language</Text>
             <Picker
               mode="dropdown"
               placeholder="Select One"
@@ -105,14 +130,6 @@ clickNewSozluk() {
       </Modal>
       );
     }
-  goToSozlukPaylas() {
-    const currentUser = firebase.auth().currentUser;
-    if (currentUser) {
-     Actions.sozlukPaylas();
-    }else{
-      Actions.login({ islem: 2 });
-    }
-  }
   renderHeader() {
     return (<Header>
       <Left>
@@ -121,17 +138,14 @@ clickNewSozluk() {
         </Button>
       </Left>
       <Body>
-        <Title>Sozlukler</Title>
+        <Title>İndirilen Sozlukler</Title>
       </Body>
       <Right>
       <Button transparent onPress={() => { Actions.arama(); }}>
           <Icon name='search' />
         </Button>
-        <Button transparent onPress={() => { this.goToSozlukPaylas(); }}>
-          <Icon name='info' />
-        </Button>
-        <Button transparent onPress={() => Actions.login()}>
-          <Icon name='person' />
+        <Button transparent>
+          <Icon name='information-circle' />
         </Button>
         <Button
 transparent onPress={() =>
@@ -155,44 +169,37 @@ transparent onPress={() =>
   }
   renderLoading() {
   return (
-    <Spinner color='green' />
+    <View>
+      
+      <ActivityIndicator size="large" color="#0000ff" />
+      
+      
+        </View>
   );
-  }
-  clickSozlukPaylas(item) {
-    const currentUser = firebase.auth().currentUser;
-    if (currentUser) {
-      Actions.sozlukPaylas({ data: item.id, islem: 1 });
-    } else {
-      Actions.login({ data: item.id, islem: 1 });
-    }
   }
   renderList() {
     console.log(this.props.loading);
     return (
+  
       <List
       dataArray={this.state.data}
                   renderRow={(item) =>
                     <ListItem>
                       <Card>
                           <CardItem header>
+                          <Left>
+                            <Icon name='book' style={{ fontSize: 50, color: 'green', marginRight: 10 }} />
+                            <H3> {item.name}</H3>
+                          </Left>
                           
-                          <Body>
-                          <Item>
-                          <Icon name='flag' />
-                          <H3> {item.name}</H3>
-                          <Icon name='checkmark' />
-                          </Item>
-                          <Text note>{item.lang}--{item.lang2}</Text>
-                          </Body>
-                          <Right>
-                          <Button transparent success onPress={() => { this.clickSozlukPaylas(item); }}>
-                            <Icon name='share' />
-                          </Button>
-                          </Right>   
                           </CardItem>
                           <CardItem >
                           <Body >
+                            <Item style={{ flex: 1 }}>
                               <Text style={{ fontSize: 20, color: 'grey', flex: 1 }}>{item.aciklama}</Text>
+                            </Item>
+                              <Text>{item.lang}--{item.lang2}</Text>
+                           
                           </Body>
                           </CardItem>
                           <CardItem footer>
@@ -204,7 +211,10 @@ transparent onPress={() =>
                             <Icon name='build' />
                             <Text>Duzenle</Text>
                           </Button>
-                         
+                          <Button iconLeft transparent success onPress={() => { Actions.sozlukPaylas({ data: item.id, islem: 1 }); }}>
+                            <Icon name='build' />
+                            <Text>Paylaş</Text>
+                          </Button>
                           </CardItem>
                       </Card>
                     </ListItem>
@@ -223,15 +233,14 @@ transparent onPress={() =>
               </Content>
               <Footer>
           <FooterTab>
-            <Button vertical>
+          <Button vertical onPress={() => Actions.sozlukList()}>
               <Icon name="apps" />
               <Text>MySozlukler</Text>
             </Button>
-            <Button vertical onPress={() => Actions.sozlukIndirilen()}>
+            <Button vertical>
               <Icon name="camera" />
               <Text>İndirilenler</Text>
             </Button>
-           
           </FooterTab>
         </Footer>
            </Container>

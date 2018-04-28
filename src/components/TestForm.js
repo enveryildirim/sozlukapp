@@ -41,7 +41,7 @@ componentWillMount() {
         let c2 = '';
         let c3 = '';
         let c4 = '';
-        if (k.length < 4) {
+        if (len < 4) {
           tip = this.getRandomInt(2);
         }
         switch (tip) {
@@ -82,21 +82,39 @@ componentWillMount() {
             'Testten Çıkmak İstiyor musunuz',
             [
               { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
-              { text: 'OK', onPress: () => Actions.sozlukList() },
+              { text: 'OK', onPress: () => Actions.pop() },
             ],
             { cancelable: false }
           );
     }
+    clickIpucu(ip) {
+      Alert.alert(
+          'İpucu',
+         ip,
+          [
+            { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
+            
+          ],
+          { cancelable: false }
+        );
+  }
+
+  controlCevap(dogru, cevap) {
+    const d = d.toLowerCase().trim();
+    const ce = ce.toLowerCase().trim();
+    if (d === ce) return true;
+    if (d.length < ce.length + 1 || d.length > ce.length - 1 || d.length === ce.length) {
+
+    }
+  }
     clickCevap() {
       const { soru, cevap, value, current, tip } = this.state;
+      if (value === '') {
+        alert('Lütfen Boş Bırakmayınız');
+        return;
+      }
       db.updateGosterim(current);
-      /*if ((tip === 0 || tip === 2) && cevap === value) {
-        alert(`Doğru:${cevap}`);
-        db.updateDogru(current);
-      } else if ((tip === 1 || tip === 3) && soru === value) {
-        alert(`Doğru:${cevap}`);
-        db.updateDogru(current);
-      }*/
+      
       if (cevap === value) {
         alert(`Doğru:${cevap}`);
         db.updateDogru(current);
@@ -182,7 +200,7 @@ componentWillMount() {
                 <Row style={styles.soru}>
             
                     <H1 style={styles.soruYazi}>{this.state.soru}</H1>
-                    <Icon name='info' style={{ fontSize: 30, color: 'blue' }} active onPress={() => alert(this.state.aciklama)} /> 
+                    <Icon name='info' style={{ fontSize: 30, color: 'blue' }} active onPress={() => this.clickIpucu(this.state.aciklama)} /> 
                
                 </Row>
               </Item>
@@ -230,7 +248,7 @@ const styles = StyleSheet.create({
     soru: {
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop:10
+      marginTop: 10
     },
     a: {
       marginTop: 0

@@ -71,5 +71,20 @@ Sozluk.schema = {
     },
 };
 
-export default new Realm({ schema: [Sozluk, Kelime], deleteRealmIfMigrationNeeded: true });
+class IndirilenSozluk extends Realm.Object {
+}
+IndirilenSozluk.schema = {
+    name: 'IndirilenSozluk',
+    primaryKey: 'id',
+    properties: {
+        id: { type: 'string', default: Utils.guid2() },
+        name: 'string',
+        aciklama: 'string?',
+        lang: 'string',
+        lang2: 'string'
+       
+    },
+};
+
+export default new Realm({ schema: [Sozluk, Kelime, IndirilenSozluk], deleteRealmIfMigrationNeeded: true });
 

@@ -25,7 +25,10 @@ v = c == 'x' ? r : (r & 0x3 | 0x8);
     },
     getYuzde(deger, toplam) {
       return (deger * 100) / toplam;
-    }
+    },
+     remove(array, element) {
+      return array.filter(e => e !== element);
+  }
   };
 
   

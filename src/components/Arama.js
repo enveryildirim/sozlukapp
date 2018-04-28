@@ -6,6 +6,10 @@ import { Container, Header, Content, List, ListItem, Card, CardItem,
 import SearchBar from 'react-native-searchbar';
 import { Col, Row, Grid } from 'react-native-easy-grid';
 import { Actions } from 'react-native-router-flux';
+import firebase from 'firebase';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Modal from 'react-native-modal';
+import db from '../data/sozluk';
 
 export default class SearchContainer extends Component {
 
@@ -14,22 +18,107 @@ export default class SearchContainer extends Component {
     this.state = {
       results: [],
       selected2: 'key0',
-      key: ''
+      key: '',
+      ModalVisible: false,
+      loading: false,
+      loading2: false,
+      data: {},
+      links: []
     };
+  }
+  componentWillMount() {
+    firebase.auth().signInWithEmailAndPassword('a@mail.com', '123456').then(aa => {
+      const { currentUser } = firebase.auth();
+      this.setState({ loading2: true });
+      firebase.database().ref('sozluks')
+      .on('value', (snap) => {
+        //alert(JSON.stringify(snap.val()));
+        const data = [];
+        snap.forEach((a) => {
+          const sozluk = a.val();
+         
+                   data.push(sozluk);
+        });
+        this.setState({ results: data, loading2: false });
+      });
+    });
   }
   onValueChange2(value) {
     this.setState({
       selected2: value
     });
   }
-/*
-  <SearchBar
-            ref={(ref) => this.searchBar = ref}
-            showOnLoad
-            hideBack
-          />
-*/
+  onSearch(value) {
+    firebase.auth().signInWithEmailAndPassword('a@mail.com', '123456').then(aa => {
+      const { currentUser } = firebase.auth();
+      this.setState({ loading: true });
+      firebase.database().ref('sozluks')
+      .orderByChild('name')
+      .startAt(value)
+      .on('value', (snap) => {
+        //alert(JSON.stringify(snap.val()));
+        const data = [];
+        snap.forEach((a) => {
+          const sozluk = a.val();
+          if (sozluk.userid !== currentUser.uid) {
+          data.push(sozluk);
+          }
+        });
+        this.setState({ results: data, loading: false });
+      });
+    });
+  }
+indirSozluk(id) {
+  const sozluk = this.state.results.filter(s => s.id === id)[0];
+  db.saveIndirilen(sozluk);
+}
+onLoadingInfo(id) {
+  this.setState({ ModalVisible: true, data: [] });
+  firebase.database().ref(`profiles/${id}/`)
+  .on('value', (snap) => {
+    const data = snap.val();
+    const links = snap.val().links;
+    this.setState({ data, links });
+  });
+}
+renderList(data) {
+  alert(JSON.stringify(data));
+}
+renderModalYeni() {
+  if (this.state.loading) {
+    return (
+      <Text>Yükleniyor</Text>
+    );
+  }
+  return (
+    <Modal
+    isVisible={this.state.ModalVisible}
+    onRequestClose={() => { this.setState({ ModalVisible: false }); }}
+    animationType="slide"
+    >
+     <KeyboardAwareScrollView>
+     <Form style={{ backgroundColor: 'white' }}>
+        <Item>
+          <Text>{this.state.data.info}</Text>
+        </Item>
+        <List
+            dataArray={this.state.links}
+            renderRow={(item) =>
+                <Text>{item.name}</Text>
+            }
+        />
+      </Form>
+
+      <Button danger full onPress={() => this.setState({ ModalVisible: false })} style={{ borderRadius: 30 }}><Text> Close </Text></Button>
+       
+      </KeyboardAwareScrollView>
+  </Modal>
+  );
+}
   render() {
+   /* if (this.state.loading2) {
+      return (<Text>Yükleniyor</Text>);
+    }*/
     return (
       <Container>
         <Grid>
@@ -37,8 +126,8 @@ export default class SearchContainer extends Component {
           <SearchBar
             ref={(ref) => this.searchBar = ref}
             showOnLoad
-            handleChangeText={(value) => { this.setState({ key: value }); }}
-            onBack={()=>Actions.sozlukList()}
+            handleChangeText={(value) => { this.setState({ key: value }); this.onSearch(value); }}
+            onBack={() => Actions.pop()}
           />
           </Row>
           <Row style={{ height: 50 }}>
@@ -62,13 +151,47 @@ export default class SearchContainer extends Component {
             </Col>
         
           </Row>
-          <Row style={{ flex: 1, backgroundColor: 'red' }}>
-            <Button onPress={() => { alert(this.state.key); }}>
-              <Text>deneasdasd</Text>
-            </Button>
+          <Row style={{ flex: 1, backgroundColor: 'white' }}>
+            {this.state.loading2 ? <Text>Yükleniyor</Text>:
+            <List
+            dataArray={this.state.results}
+            renderRow={(item) =>
+              <Card>
+            <CardItem header>
+              <Left>
+                <Body>
+                  <Text>{item.name}</Text>
+                  <Text note>{item.lang}--{item.lang2}</Text>
+                </Body>
+              </Left>
+            </CardItem>
+            <CardItem cardBody>
+            <Text>{item.aciklama}</Text>
+            </CardItem>
+            <CardItem footer >
+              <Left>
+                <Button transparent>
+                  <Icon active name="thumbs-up" />
+                  <Text>{item.indirilme}</Text>
+                </Button>
+              </Left>
+              <Body>
+                <Button transparent onPress={() => this.onLoadingInfo(item.userid)}>
+                  <Icon active name="chatbubbles" />
+                  <Text>Paylaşan</Text>
+                </Button>
+              </Body>
+            <Right onPress={() => { alert('İndirilme Aktif yapılacak');/*this.indirSozluk(item.id);*/ }}>
+                <Text>11h ago</Text>
+              </Right>
+            </CardItem>
+          </Card>
+            }
+            />
+          }
           </Row>
         </Grid>
-       
+       {this.renderModalYeni()}
       </Container>
     );
   }

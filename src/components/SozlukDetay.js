@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { TouchableOpacity, TouchableHighlight, View, Modal, StyleSheet } from 'react-native';
-import { Container, Header, Content, List, Item, Button, Picker, Label, ListItem, 
+import { TouchableOpacity, TouchableHighlight, View, Modal, StyleSheet, Alert } from 'react-native';
+import { Container, Header, Content, List, Item, Button, Picker, Label, ListItem, ActionSheet, 
     Form, Text, Icon, Input, Left, Body, Right, Spinner, Switch, FooterTab, Title, Card, CardItem, Footer } from 'native-base';
 
 import { Actions } from 'react-native-router-flux';
@@ -17,14 +17,18 @@ class SozlukDetay extends Component {
     constructor(props) {
         super(props);
         const id = this.props.data;
+        //const k = t.kelimeler.sorted([['toplam', false], ['yanlis', true]]);
         const data = db.getSozluk(id);
+        const filter = data.kelimeler.sorted([['yanlis', true]]);
+
+        //alert(JSON.stringify(filter));
         this.state = { loading: false,
 selectItem: '',
 updateKelimeModal: false,
 newKelimeModal: false,
 updateModalVisible: false,
 sozluk: data,
-data: data.kelimeler,
+data: filter,
 name: data.name,
 desc: data.aciklama,
 lang: data.lang, 
@@ -34,27 +38,49 @@ cevap: '',
 kaciklama: '',
       gkelime: '',
 gcevap: '',
-gaciklama: '' };
+gaciklama: '',
+name_error: false, 
+kelime_error: false,
+cevap_error: false };
     }
 clickKelimeEkle() {
     const { kelime, cevap, kaciklama } = this.state;
     const sozluk = this.state.sozluk;
-    db.newKelime(sozluk, { kelime, cevap, aciklama: kaciklama });
-    this.setState({ sozluk, data: sozluk.kelimeler, newKelimeModal: false });
+    if (kelime === '') {
+      this.setState({ kelime_error: true });
+      return;
+    }
+    if (cevap === '') {
+      this.setState({ cevap_error: true });
+      return;
+    }
+    //db.newKelime(sozluk, { kelime, cevap, aciklama: kaciklama });
+    this.setState({ sozluk, data: sozluk.kelimeler, newKelimeModal: false, kelime_error: false, cevap_error: false });
 }
 clickUpdateSozluk() {
  const { name, desc, lang, lang2 } = this.state;
+ if (name === '') {
+   this.setState({ name_error: true });
+   return;
+ }
  const sozluk = { ...this.state.sozluk, name, aciklama: desc, lang, lang2 };
  db.update(sozluk);
- this.setState({ updateModalVisible: false, sozluk, name, desc, lang, lang2 });
+ this.setState({ updateModalVisible: false, sozluk, name, desc, lang, lang2, name_error: false });
  alert('başarıyla güncellendi');
- //this.setState({ data: db.findAll() });
 }
 clickKelimeUpdate() {
   const { gkelime, gcevap, gaciklama, selectItem } = this.state;
-  db.updateKelime({ id: selectItem, kelime: gkelime, cevap: gcevap, aciklama: gaciklama });
+  if (gkelime === '') {
+    this.setState({ kelime_error: true });
+    return;
+  }
+  if (gcevap === '') {
+    this.setState({ cevap_error: true });
+    return;
+  }
+  //db.updateKelime({ id: selectItem, kelime: gkelime, cevap: gcevap, aciklama: gaciklama });
   alert('Kelime Güncellendi');
-  this.setState({ updateKelimeModal: false });
+  this.setState({ updateKelimeModal: false, kelime_error: false, cevap_error: false });
 }
 clickUpdateKelimeModalOpen(id) {
  const s = this.state.sozluk;
@@ -62,28 +88,47 @@ clickUpdateKelimeModalOpen(id) {
  /*const r = realm.objectForPrimaryKey('Kelime', id.id);
  alert(JSON.stringify(r));*/
 }
+clickKelimeDetay(item) {
+const detay = `Doğru: ${item.dogru} Yanlış: ${item.yanlis}  Toplam: ${item.toplam} \nİpucu: ${item.aciklama}`;
+  Alert.alert(
+    'Kelime Bilgilendirme',
+    detay,
+    [
+      { text: 'OK', onPress: () => console.log('OK Pressed') }
+    ],
+    { cancelable: false }
+  );
+}
+renderKelimeDetay() {
+  return (
+    <Text />
+  );
+}
 renderUpdateKelimeModal() {
   return (
     <Modal
     animationType="slide"
     visible={this.state.updateKelimeModal}
-    onRequestClose={() => { this.setState({ updateKelimeModal: false }) ;}}
+    onRequestClose={() => { this.setState({ updateKelimeModal: false }); }}
     >
     <KeyboardAwareScrollView>
           <Form style={{ backgroundColor: 'white', borderRadius: 20 }}>
-        <Item>
+        <Item error={this.state.kelime_error} >
           <Input placeholder="Kelime" onChangeText={gkelime => this.setState({ gkelime })} value={this.state.gkelime} />
+          {this.state.kelime_error ? <Icon name='close-circle' /> : null }
         </Item>
-        <Item>
+        <Item error={this.state.cevap_error} >
           <Input placeholder="Cevap" onChangeText={gcevap => this.setState({ gcevap })} value={this.state.gcevap} />
+          {this.state.cevap_error ? <Icon name='close-circle' /> : null }
         </Item>
         <Item last>
           <Input placeholder="Aciklama" onChangeText={gaciklama => this.setState({ gaciklama })} value={this.state.gaciklama} />
         </Item>
-        
+        <Button primary full onPress={() => this.clickKelimeUpdate()}><Text> Güncelle </Text></Button>
+      <Button danger full onPress={() => this.setState({ updateKelimeModal: false, kelime_error: false, cevap_error: false })}><Text> Close </Text></Button>
+      <Button danger onPress={() => this.setState({ updateKelimeModal: false })}><Text> Delete </Text></Button>
       </Form>
-      <Button primary full onPress={() => this.clickKelimeUpdate()}><Text> Güncelle </Text></Button>
-      <Button danger full onPress={() => this.setState({ updateKelimeModal: false })}><Text> Close </Text></Button>
+      
       </KeyboardAwareScrollView>
     
   </Modal>
@@ -98,11 +143,13 @@ renderEkleModal() {
       >
        <KeyboardAwareScrollView>
           <Form style={{ backgroundColor: 'white', borderRadius: 20 }}>
-          <Item>
+          <Item error={this.state.kelime_error}>
             <Input placeholder="Kelime" onChangeText={kelime => this.setState({ kelime })} value={this.state.kelime} />
+            {this.state.kelime_error ? <Icon name='close-circle' /> : null }
           </Item>
-          <Item>
+          <Item error={this.state.cevap_error}>
             <Input placeholder="Cevap" onChangeText={cevap => this.setState({ cevap })} value={this.state.cevap} />
+            {this.state.cevap_error ? <Icon name='close-circle' /> : null }
           </Item>
           <Item last>
             <Input placeholder="Aciklama" onChangeText={kaciklama => this.setState({ kaciklama })} value={this.state.kaciklama} />
@@ -110,14 +157,14 @@ renderEkleModal() {
           
         </Form>
         <Button primary full onPress={() => this.clickKelimeEkle()}><Text> Ekle </Text></Button>
-        <Button danger full onPress={() => this.setState({ newKelimeModal: false })}><Text> Close </Text></Button>
+        <Button danger full onPress={() => this.setState({ newKelimeModal: false, kelime_error: false, cevap_error: false })}><Text> Close </Text></Button>
          
         </KeyboardAwareScrollView>
     
     </Modal>
     );
   }
-    renderModalUpdate() {
+  renderModalUpdate() {
       return (
         <Modal
         animationType="slide"
@@ -127,13 +174,15 @@ renderEkleModal() {
         >
         <KeyboardAwareScrollView>
           <Form style={{ backgroundColor: 'white', borderRadius: 20 }}>
-            <Item>
+            <Item error={this.state.name_error}>
               <Input placeholder="Name" onChangeText={name => this.setState({ name })} value={this.state.name} />
+              {this.state.name_error ? <Icon name='close-circle' /> : null }
             </Item>
             <Item>
               <Input placeholder="Aciklama" onChangeText={desc => this.setState({ desc })} value={this.state.desc} />
             </Item>
             <Item last />
+            <Text>Main Language</Text>
             <Picker
               mode="dropdown"
               placeholder="Select One"
@@ -146,6 +195,7 @@ renderEkleModal() {
               <Item label="Almanca" value="eu" />
 
             </Picker>
+            <Text>Target Language</Text>
             <Picker
               mode="dropdown"
               placeholder="Select One"
@@ -161,6 +211,7 @@ renderEkleModal() {
           </Form>
           <Button primary full onPress={() => this.clickUpdateSozluk()}><Text> Update </Text></Button>
           <Button danger full onPress={() => this.setState({ updateModalVisible: false })}><Text> Close </Text></Button>
+          <Button danger onPress={() => this.setState({ updateModalVisible: false })}><Text> Delete </Text></Button>
           </KeyboardAwareScrollView>
       </Modal>
       );
@@ -176,7 +227,7 @@ renderEkleModal() {
         <Title>Sözlük İsmi</Title>
       </Body>
       <Right>
-      <Button transparent>
+      <Button transparent onPress={() => Actions.testForm({ id: this.props.data })}>
           <Icon name='flag' />
         </Button>
         <Button transparent onPress={() => { this.setState({ updateModalVisible: true }); }}>
@@ -209,6 +260,9 @@ renderEkleModal() {
     <Spinner color='green' />
   );
   }
+  renderStyle(a) {
+    return styles.danger;
+  }
   renderList() {
     return (
   
@@ -216,19 +270,21 @@ renderEkleModal() {
       dataArray={this.state.data}
                   renderRow={(item) =>
                     <ListItem>
-                      <CardItem style={styles.item}>
+                      <CardItem style={this.renderStyle(0)}>
                           <Body style={{ flex: 1, flexDirection: 'row', alignItems: 'center', alignContent: 'center' }}>
                           <Icon
                               active
-                              name="build"
+                              name="create"
                               style={{ color: '#DD5044' }}
                               onPress={() => this.clickUpdateKelimeModalOpen(item)}
                           />
-                            <Text style={{ marginLeft: 15, color: 'red' }}>{item.kelime}</Text>
+                            <Text style={{ marginLeft: 15, color: 'green' }}>{item.kelime}</Text>
                             <Icon name='arrow-round-forward' style={{ marginLeft: 10, color: 'red' }} /> 
                             <Text style={{ marginLeft: 10, color: 'blue' }}>{item.cevap}</Text>
                           </Body>
-                      
+                        <Right>
+                          <Icon name='danger' active onPress={() => this.clickKelimeDetay(item)} />
+                        </Right>
                         </CardItem>
                     </ListItem>
                   }
@@ -236,7 +292,7 @@ renderEkleModal() {
   
     );
   }
-    render() {
+  render() {
         return (
             <Container style={styles.container}>
               {this.renderHeader()}
@@ -248,14 +304,15 @@ renderEkleModal() {
               {this.renderEkleModal()}
               {this.renderUpdateKelimeModal()}
               </Content>
-              <Footer>
-                <FooterTab>
-                
-                <Button rounded iconLeft full danger onPress={() => this.setState({ newKelimeModal: true })}>
-                <Icon name='add' />
-                  <Text style={{ fontSize: 15 }}>Kelime Ekle</Text>
-                </Button>
-                </FooterTab>
+              <Footer style={{ backgroundColor: 'white' }}>
+              
+                <Button block style={{ flex: 1, borderRadius: 10 }} iconLeft success onPress={() => this.setState({ newKelimeModal: true })}>
+            <Icon name='add' />
+              <Text>Ekle</Text>
+      
+            </Button>
+        
+              
          </Footer>
            </Container>
          
@@ -275,9 +332,8 @@ const styles = StyleSheet.create({
   mb: {
     marginBottom: 15
   },
-  item: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#c1c1c1',
+  danger: {
+    backgroundColor: 'white'
   }
 });
 export default SozlukDetay;

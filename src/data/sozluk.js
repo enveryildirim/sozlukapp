@@ -6,6 +6,14 @@ const DataService = {
     findAll() {
       return realm.objects(dbTable);
     },
+    findAllIndirilen() {
+      return realm.objects('IndirilenSozluk');
+    },
+    initIndirilen(sozluk) {
+      realm.write(() => {
+        realm.create('IndirilenSozluk', sozluk);
+      });
+    },
     getAllKelimeler(sozluk) {
       return sozluk.kelimeler;
     },
@@ -34,6 +42,12 @@ const DataService = {
       realm.write(() => {
         sozluk.id = U.guid();
         return realm.create(dbTable, sozluk);
+      });
+    },
+    saveIndirilen(sozluk) {
+      realm.write(() => {
+        const { id, name, lang, lang2, aciklama } = sozluk;
+          realm.create('IndirilenSozluk', { id, name, aciklama, lang, lang2 });
       });
     },
     updateGosterim(kelime) {

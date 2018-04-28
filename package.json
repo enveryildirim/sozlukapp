@@ -7,11 +7,13 @@
     "test": "jest"
   },
   "dependencies": {
+    "firebase": "^4.12.1",
     "native-base": "^2.4.1",
     "react": "16.3.1",
     "react-native": "0.55.1",
     "react-native-easy-grid": "^0.1.17",
     "react-native-keyboard-aware-scroll-view": "^0.5.0",
+    "react-native-localization": "^1.0.7",
     "react-native-modal": "^5.4.0",
     "react-native-router-flux": "^3.42.0",
     "react-native-searchbar": "^1.14.0",
