@@ -10,7 +10,7 @@ import {
   Body,
   Form,
   Text,
-  CheckBox, ListItem, Icon, Footer, FooterTab
+  CheckBox, ListItem, Icon, Footer, FooterTab,Header,Left,Title
 } from 'native-base';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
@@ -27,7 +27,7 @@ class LoginForm extends Component {
     if (this.props.islem === 1) {
       alert('Login Olmanız Gerekiyor');
     }
-    if(this.props.islem === 2){
+    if (this.props.islem === 2) {
       alert('Login olmanız Gerekiyor');
     }
   }
@@ -59,7 +59,7 @@ class LoginForm extends Component {
       firebase.auth().signInWithEmailAndPassword(email, password)
       .then(user => {
         if (!user.emailVerified) {
-          alert('Emaili aktive edininiz');
+          alert('Email aktive edininiz');
         } else {
           //alert(JSON.stringify(user));
           if (this.state.rememberMe) {
@@ -67,7 +67,7 @@ class LoginForm extends Component {
           }
           if (this.props.islem === 1) {
             Actions.sozlukPaylas({ data: this.props.data, islem: 1 });
-          }else {
+          } else {
             Actions.sozlukPaylas();
           }
         }
@@ -78,10 +78,23 @@ class LoginForm extends Component {
       });
     }
   }
-
+  renderHeader() {
+    return (<Header>
+      <Left>
+        <Button transparent onPress={() => { Actions.sozlukList(); }}>
+          <Icon name='home' />
+        </Button>
+      </Left>
+      <Body>
+        <Title>Paylaşılan Sözlükler</Title>
+      </Body>
+    </Header>
+       );
+  }
   render() {
     return (
       <Container>
+        {this.renderHeader()}
        <Content>
           <Form>
             <Item>

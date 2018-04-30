@@ -14,7 +14,6 @@ class TestForm extends Component {
     constructor(props) {
         super(props);
         const t = db.getSozluk(this.props.id);
-        
         //const { current, soru, cevap, tip } = this.rastgele();
         //alert(JSON.stringify(t));
         this.state = { data: t, current: t.kelimeler[0], soru: '', cevap: '', aciklama: '', value: '', tip: 0, toplam: 1, btn_active: -1 };
@@ -100,12 +99,17 @@ componentWillMount() {
   }
 
   controlCevap(dogru, cevap) {
-    const d = d.toLowerCase().trim();
-    const ce = ce.toLowerCase().trim();
-    if (d === ce) return true;
-    if (d.length < ce.length + 1 || d.length > ce.length - 1 || d.length === ce.length) {
-
-    }
+    const d = dogru.toLowerCase().trim();
+    const ce = cevap.toLowerCase().trim();
+    if (d === ce) {
+      alert(`Doğru: ${cevap}`);
+      return true;
+    } else if ((d.length + 1 === ce.length || d.length - 1 === ce.length) && this.state.tip < 2) {
+      alert(`Yanlış: ${cevap}  \nDoğru: ${dogru}\nKabul Edildi`);
+      return true;
+    } 
+    alert(`Yanlış: ${cevap}  \nDoğru: ${dogru}\nYanlış kabul edilmedi`);
+      return false;
   }
     clickCevap() {
       const { soru, cevap, value, current, tip } = this.state;
@@ -115,11 +119,9 @@ componentWillMount() {
       }
       db.updateGosterim(current);
       
-      if (cevap === value) {
-        alert(`Doğru:${cevap}`);
+      if (this.controlCevap(cevap, value)) {
         db.updateDogru(current);
       } else {
-        alert(`Yanlış:${value} -- Dogru:${cevap}`);
         db.updateYanlis(current);
       }
       

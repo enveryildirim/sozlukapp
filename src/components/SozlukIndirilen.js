@@ -19,13 +19,11 @@ const CANCEL_INDEX = 4;
 class SozlukList extends Component {
     constructor(props) {
         super(props);
-       // this.initSozluk();
-       
         this.state = { loading: false, newModalVisible: false, data: [], name: '', desc: '', lang: 'en', lang2: 'tr' };
     }
     componentWillMount() {
-      alert('local olanların elenmesi lazım !!!!!!!!!');
       const sozlukler = db.findAllIndirilen();
+      alert(JSON.stringify(sozlukler));
       sozlukler.forEach(element => {
        this.loadVerileri(element);
       });
@@ -45,15 +43,16 @@ class SozlukList extends Component {
         .equalTo(item.id)
         .once('value', snap => {
             const { data } = this.state;
+            if (snap.hasChildren) {
             snap.forEach(e => {
                 const s = db.getSozluk(e.val().id);
-                alert(JSON.stringify(s));
                 if (!s) {
                 data.push(e.val());
                 }
             });
-        
-        //alert(JSON.stringify(snap.val()));
+          } else{
+            db.deleteİndirilenSozluk(item);
+          }
         
         this.setState({ data, loading: false });
         });
@@ -130,11 +129,19 @@ clickNewSozluk() {
       </Modal>
       );
     }
+    goToSozlukPaylas() {
+      const currentUser = firebase.auth().currentUser;
+      if (currentUser) {
+       Actions.sozlukPaylas();
+      } else {
+        Actions.login({ islem: 2 });
+      }
+    }
   renderHeader() {
     return (<Header>
       <Left>
-        <Button transparent onPress={() => { this.setState({ newModalVisible: true }); }}>
-          <Icon name='add' />
+        <Button transparent onPress={() => { Actions.sozlukList(); }}>
+          <Icon name='home' />
         </Button>
       </Left>
       <Body>
@@ -144,8 +151,11 @@ clickNewSozluk() {
       <Button transparent onPress={() => { Actions.arama(); }}>
           <Icon name='search' />
         </Button>
-        <Button transparent>
-          <Icon name='information-circle' />
+        <Button transparent onPress={() => { this.goToSozlukPaylas(); }}>
+          <Icon name='briefcase' />
+        </Button>
+        <Button transparent onPress={() => Actions.login()}>
+          <Icon name='person' />
         </Button>
         <Button
 transparent onPress={() =>

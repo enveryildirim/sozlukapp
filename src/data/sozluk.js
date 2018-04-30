@@ -1,5 +1,6 @@
 import realm from './realm';
 import U from './Utils';
+import sozluk_firebase from './sozlukFirebase';
 
 const dbTable = 'Sozluk';
 const DataService = {
@@ -31,7 +32,7 @@ const DataService = {
     },
     updateKelime(kelime) {
       realm.write(() => {
-        alert(JSON.stringify(kelime));
+        
         const k = realm.objectForPrimaryKey('Kelime', kelime.id);
         k.kelime = kelime.kelime;
         k.cevap = kelime.cevap;
@@ -74,6 +75,16 @@ const DataService = {
     delete(sozluk) {
       realm.write(() => {
         realm.delete('Sozluk', sozluk);
+      });
+    },
+    deleteKelime(kelime) {
+      realm.write(() => {
+        realm.delete('Kelime', kelime);
+      });
+    },
+    deleteİndirilenSozluk(sozluk) {
+      realm.write(() => {
+        realm.delete('IndirilenSozluk', sozluk);
       });
     },
     init() {

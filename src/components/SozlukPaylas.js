@@ -19,8 +19,7 @@ class SozlukList extends Component {
           const { currentUser } = firebase.auth();
           if (currentUser) {
             const sozluk = db.getSozluk(this.props.data);
-            alert("Sözlük Paylaşıldı");
-            //paylas_sozluk.ekle('', sozluk);
+            paylas_sozluk.ekle('', sozluk);
           } else {
             Actions.login({ mesaj: 'Giriş Yapmanız lazım' });
           }
@@ -34,13 +33,12 @@ class SozlukList extends Component {
     this.setState({ loading: true });
     firebase.database().ref('sozluks')
     .on('value', (snap) => {
-      //alert(JSON.stringify(snap.val()));
       const data = [];
       snap.forEach((a) => {
         const sozluk = a.val();
        
         if (sozluk.userid === currentUser.uid) {
-                 data.push(sozluk);   
+              data.push(sozluk);   
           }
           this.setState({ data, loading: false });
       });
@@ -50,24 +48,19 @@ class SozlukList extends Component {
     return (<Header>
       <Left>
         <Button transparent onPress={() => { Actions.sozlukList(); }}>
-          <Icon name='back' />
+          <Icon name='home' />
         </Button>
       </Left>
       <Body>
         <Title>Paylaşılan Sözlükler</Title>
       </Body>
       <Right>
-      <Button transparent onPress={() => { Actions.arama(); }}>
-          <Icon name='search' />
+        <Button iconRight transparent onPress={() => alert(firebase.auth().currentUser.email)}>
+        
+        <Text>{firebase.auth().currentUser.email.substring(0, 5)}..</Text>
+        <Icon name='person' />
         </Button>
-        <Button transparent>
-          <Icon name='information-circle' />
-        </Button>
-        <Button
-transparent onPress={() => alert('ActionSheet')}
-        >
-          <Icon name='more' />
-        </Button>
+        
       </Right>
     </Header>
        );
@@ -76,6 +69,41 @@ transparent onPress={() => alert('ActionSheet')}
   return (
     <Spinner color='green' />
   );
+  }
+
+  onUnPublishig(item) {
+    //alert(JSON.stringify(item));
+    firebase.database().ref('sozluks')
+      .orderByChild('id')
+      .equalTo(item.id)
+      .on('value', (snap) => {
+        const s = snap.val();
+        const tmp = {};
+        snap.forEach((value) => {
+          const a = value.val();
+          a.publish = false;
+          tmp[value.key] = a;
+        });
+        firebase.database().ref('sozluks').update(tmp);
+        
+      });
+  }
+  onPublishig(item) {
+    //alert(JSON.stringify(item));
+    firebase.database().ref('sozluks')
+      .orderByChild('id')
+      .equalTo(item.id)
+      .on('value', (snap) => {
+        const s = snap.val();
+        const tmp = {};
+        snap.forEach((value) => {
+          const a = value.val();
+          a.publish = true;
+          tmp[value.key] = a;
+        });
+        firebase.database().ref('sozluks').update(tmp);
+       
+      });
   }
   renderList() {
     return (
@@ -103,17 +131,19 @@ transparent onPress={() => alert('ActionSheet')}
                           </CardItem>
                           <CardItem footer>
                           <Button active={false} iconLeft transparent primary onPress={() => { }}>
-                            <Icon name='flag' />
+                            <Icon name='cloud-download' />
                             <Text>{item.indirilme}</Text>
                           </Button>
-                          <Button iconLeft transparent danger onPress={() => { }}>
-                            <Icon name='build' />
-                            <Text>Duzenle</Text>
-                          </Button>
-                          <Button iconLeft transparent success onPress={() => { }}>
-                            <Icon name='build' />
-                            <Text>Paylaş</Text>
-                          </Button>
+                          {item.publish ?
+                          <Button iconLeft transparent danger onPress={() => { this.onUnPublishig(item); }}>
+                            <Icon name='close' />
+                            <Text>Paylaşma Kapat</Text>
+                          </Button> : 
+                          <Button iconLeft transparent success onPress={() => { this.onPublishig(item); }}>
+                            <Icon name='share' />
+                            <Text>Paylaşma Aç</Text>
+                          </Button>}
+                          
                           </CardItem>
                       </Card>
                     </ListItem>

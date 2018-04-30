@@ -9,6 +9,7 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
+import { ActivityIndicator } from 'react-native';
 import db from '../data/sozluk';
 
 export default class SearchContainer extends Component {
@@ -27,8 +28,6 @@ export default class SearchContainer extends Component {
     };
   }
   componentWillMount() {
-    firebase.auth().signInWithEmailAndPassword('a@mail.com', '123456').then(aa => {
-      const { currentUser } = firebase.auth();
       this.setState({ loading2: true });
       firebase.database().ref('sozluks')
       .on('value', (snap) => {
@@ -41,7 +40,6 @@ export default class SearchContainer extends Component {
         });
         this.setState({ results: data, loading2: false });
       });
-    });
   }
   onValueChange2(value) {
     this.setState({
@@ -151,8 +149,8 @@ renderModalYeni() {
             </Col>
         
           </Row>
-          <Row style={{ flex: 1, backgroundColor: 'white' }}>
-            {this.state.loading2 ? <Text>Yükleniyor</Text>:
+          <Row style={{ flex: 1, justifyContent:'center', backgroundColor: 'white' }}>
+            {this.state.loading2 ? <ActivityIndicator style={{ alignItems: 'center' }} size="large" color="#0000ff" /> :
             <List
             dataArray={this.state.results}
             renderRow={(item) =>

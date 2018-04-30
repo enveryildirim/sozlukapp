@@ -31,7 +31,6 @@ class RouterComponent extends Component {
                 <Scene key='sozlukDetay' component={SozlukDetay} hideNavBar />
                 <Scene key='testForm' component={TestForm} hideNavBar />
                 <Scene key='arama' component={AramaForm} hideNavBar />
-                
           </Stack>
       </Router>
     );

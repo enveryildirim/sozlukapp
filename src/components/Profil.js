@@ -12,10 +12,10 @@ Body,
 Icon,
 Textarea,
 Footer,
-FooterTab
+FooterTab, Header, Title, Left
 } from 'native-base';
 import firebase from 'firebase';
-import { Actions } from "react-native-router-flux";
+import { Actions } from 'react-native-router-flux';
 import U from '../data/Utils';
 
 class RegisterForm extends Component {
@@ -75,6 +75,27 @@ class RegisterForm extends Component {
       alert(JSON.stringify(err));
     });
   }
+  renderHeader() {
+    return (<Header>
+      <Left>
+        <Button transparent onPress={() => { Actions.sozlukList(); }}>
+          <Icon name='home' />
+        </Button>
+      </Left>
+      <Body>
+        <Title>Paylaşılan Sözlükler</Title>
+      </Body>
+      <Right>
+        <Button iconRight transparent onPress={() => alert(firebase.auth().currentUser.email)}>
+        
+        <Text>{firebase.auth().currentUser.email.substring(0, 5)}..</Text>
+        <Icon name='person' />
+        </Button>
+        
+      </Right>
+    </Header>
+       );
+  }
   render() {
     if (this.state.loading) {
       return (<View>
@@ -88,6 +109,7 @@ class RegisterForm extends Component {
     }
   return (
       <Container>
+        {this.renderHeader()}
         <Content>
         <Form>
           <Button block danger onPress={() => this.onPublish()}><Text>Yayınla</Text></Button>

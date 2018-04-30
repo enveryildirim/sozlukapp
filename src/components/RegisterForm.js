@@ -10,7 +10,7 @@ import {
   Body,
   Form,
   Text,
-  CheckBox, ListItem, Icon, Picker, Footer, FooterTab
+  CheckBox, ListItem, Icon, Picker, Footer, FooterTab, Title, Header, Left
 } from 'native-base';
 import firebase from 'firebase';
 
@@ -21,7 +21,6 @@ class LoginForm extends Component {
   constructor(props) {
     super(props);
     this.state = { email: '', password: '', passwordcorrect: '', rememberMe: false, lang: '' };
-    
   }
 
   renderButton() {
@@ -45,21 +44,20 @@ class LoginForm extends Component {
     }
     return true;
   }
-  db_save(){
-    alert("veritabanı kayıt yapılacak");
+  db_save() {
+    alert('veritabanı kayıt yapılacak');
   }
   clickRegister() {
     const { email, password, passwordcorrect, lang } = this.state;
     if (this.clickDogrula()) {
-    
     firebase.auth().createUserWithEmailAndPassword(email, password)
     .then(user => {
         this.db_save();
-        user.updateProfile({displayName: lang});
+        user.updateProfile({ displayName: lang });
         user.sendEmailVerification().then(() => {
          alert('Email gönderildi etkinleştirilme login olmadan önce email kayıt ettitin');
         }).catch((error) => {
-          alert("Gönderilirken hata oluştu");
+          alert('Gönderilirken hata oluştu');
         });
     })
     .catch((err) => {
@@ -68,9 +66,23 @@ class LoginForm extends Component {
     });
   }
   }
+    renderHeader() {
+    return (<Header>
+      <Left>
+        <Button transparent onPress={() => { Actions.sozlukList(); }}>
+          <Icon name='home' />
+        </Button>
+      </Left>
+      <Body>
+        <Title>Paylaşılan Sözlükler</Title>
+      </Body>
+    </Header>
+       );
+  }
   render() {
     return (
       <Container>
+        {this.renderHeader()}
        <Content>
           <Form>
             <Item>

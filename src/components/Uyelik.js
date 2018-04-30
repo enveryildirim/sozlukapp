@@ -10,7 +10,7 @@ import {
   Body,
   Form,
   Text,
-  CheckBox, ListItem, Icon, Picker,Footer,FooterTab
+  CheckBox, ListItem, Icon, Picker,Footer,FooterTab, Header, Title, Left, Right
 } from 'native-base';
 import firebase from 'firebase';
 
@@ -61,9 +61,31 @@ class LoginForm extends Component {
         .catch(err => alert('hata'));
     }
   }
+  renderHeader() {
+    return (<Header>
+      <Left>
+        <Button transparent onPress={() => { Actions.sozlukList(); }}>
+          <Icon name='home' />
+        </Button>
+      </Left>
+      <Body>
+        <Title>Paylaşılan Sözlükler</Title>
+      </Body>
+      <Right>
+        <Button iconRight transparent onPress={() => alert(firebase.auth().currentUser.email)}>
+        
+        <Text>{firebase.auth().currentUser.email.substring(0, 5)}..</Text>
+        <Icon name='person' />
+        </Button>
+        
+      </Right>
+    </Header>
+       );
+  }
   render() {
     return (
       <Container>
+        {this.renderHeader()}        
        <Content>
           <Form>
             <Item>

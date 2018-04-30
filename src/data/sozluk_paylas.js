@@ -1,35 +1,34 @@
 import firebase from 'firebase';
-
+import db from './sozluk';
+import { Actions } from 'react-native-router-flux';
 const DataService = {
-    init(){
-        return firebase.auth().signInWithEmailAndPassword('a@mail.com', '123456');
-    },
+   
     findAll() {
       return [];
     },
     ekle(id, sozluk) {
         //update yapılacaak
-        
             const { currentUser } = firebase.auth();
-            if(currentUser){
-            const data = { ...sozluk, userid: currentUser.uid, indirilme: 0 };
+            if (currentUser) {
+           /* firebase.database().ref(sozluk)
+            .orderByChild('id')
+            .equalTo(sozluk.id)
+            .on('value', (snap) => {*/
+            const data = { ...sozluk, userid: currentUser.uid, indirilme: 0, publish: true };
             firebase.database().ref('sozluks/')
             .push(data)
-            .then(value => {
-                alert('sozluk eklemesi başarılı');       
-            })
-            .catch((err) => {
-                console.log(err);
+            .then(a => {
+                db.update({ ...sozluk, publish: true });
             });
-        }else{
-            alert("Login olmanız lazım");
+        /*});*/
+        } else {
+            alert('Login olmanız lazım');
         }
     },
     guncelle(id, sozluk) {
-        firebase.auth().signInWithEmailAndPassword('a@mail.com', '123456').then(a => {
             const { currentUser } = firebase.auth();
             const data = { ...sozluk, userid: currentUser.uid };
-            firebase.database().ref('sozluks/' + id + '/')
+            firebase.database().ref(`sozluks/${id}/`)
             .update(sozluk)
             .then(value => {
                 alert('sozluk eklemesi başarılı');       
@@ -37,7 +36,6 @@ const DataService = {
             .catch((err) => {
                 console.log(err);
             });
-        });
     },
     
 

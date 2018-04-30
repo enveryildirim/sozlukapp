@@ -9,6 +9,7 @@ import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import db from '../data/sozluk';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import PickerLanguage from '../common/pickerLanguage';
 
 const BUTTONS = ['Option 0', 'Option 1', 'Option 2', 'Delete', 'Cancel'];
 const DESTRUCTIVE_INDEX = 3;
@@ -18,6 +19,7 @@ const CANCEL_INDEX = 4;
 class SozlukList extends Component {
     constructor(props) {
         super(props);
+        alert(JSON.stringify(db.findAll()));
         this.state = { loading: false,
 newModalVisible: false,
 data: db.findAll(),
@@ -39,18 +41,7 @@ clickNewSozluk() {
 }
   renderLang() {
   return (
-    <Picker
-              mode="dropdown"
-              placeholder="Select One"
-              note={false}
-              selectedValue={this.state.lang}
-              onValueChange={lang => { this.setState({ lang }); }}
-    >
-              <Item label="İngilizce" value="en" />
-              <Item label="Türkçe" value="tr" />
-              <Item label="Almanca" value="eu" />
-
-            </Picker>
+    <PickerLanguage value={this.state.lang} onValueChange={(lang) => { this.setState({ lang }); }} />
   );
   }
     renderModalYeni() {
@@ -62,7 +53,7 @@ clickNewSozluk() {
         animationType="slide"
         >
          <KeyboardAwareScrollView>
-         <Form style={{ backgroundColor: 'white', borderRadius: 20 }}>
+         <Form style={{ backgroundColor: 'white', borderRadius: 5 }}>
             <Item error={this.state.name_error}>
               <Input placeholder="Name" onChangeText={name => this.setState({ name })} value={this.state.name} />
                {this.state.name_error ? <Icon name='close-circle' /> : null }
@@ -72,31 +63,9 @@ clickNewSozluk() {
             </Item>
             <Item last />
             <Text>Main Language</Text>
-            <Picker
-              mode="dropdown"
-              placeholder="Select One"
-              note={false}
-              selectedValue={this.state.lang}
-              onValueChange={lang => { this.setState({ lang }); }}
-            >
-              <Item label="İngilizce" value="en" />
-              <Item label="Türkçe" value="tr" />
-              <Item label="Almanca" value="eu" />
-
-            </Picker>
+            <PickerLanguage value={this.state.lang} onValueChange={(lang) => { this.setState({ lang }); }} />
             <Text>Target Language</Text>
-            <Picker
-              mode="dropdown"
-              placeholder="Select One"
-              note={false}
-              selectedValue={this.state.lang2}
-              onValueChange={lang2 => { this.setState({ lang2 }); }}
-            >
-              <Item label="İngilizce" value="en" />
-              <Item label="Türkçe" value="tr" />
-              <Item label="Almanca" value="eu" />
-
-            </Picker>
+            <PickerLanguage value={this.state.lang2} onValueChange={(lang2) => { this.setState({ lang2 }); }} />
           </Form>
           <Button primary full onPress={() => this.clickNewSozluk()} style={{ borderRadius: 30 }}><Text> Save </Text></Button>
           <Button danger full onPress={() => this.setState({ newModalVisible: false })} style={{ borderRadius: 30 }}><Text> Close </Text></Button>
@@ -109,7 +78,7 @@ clickNewSozluk() {
     const currentUser = firebase.auth().currentUser;
     if (currentUser) {
      Actions.sozlukPaylas();
-    }else{
+    } else {
       Actions.login({ islem: 2 });
     }
   }
@@ -128,7 +97,7 @@ clickNewSozluk() {
           <Icon name='search' />
         </Button>
         <Button transparent onPress={() => { this.goToSozlukPaylas(); }}>
-          <Icon name='info' />
+          <Icon name='briefcase' />
         </Button>
         <Button transparent onPress={() => Actions.login()}>
           <Icon name='person' />
@@ -166,6 +135,27 @@ transparent onPress={() =>
       Actions.login({ data: item.id, islem: 1 });
     }
   }
+  onRedirectTest(item) {
+    if (item.kelimeler.length === 0) {
+      alert('Kelime Eklememiniz Gerekli ');
+      Actions.sozlukDetay({ data: item.id });
+      return;
+    }
+    Actions.testForm({ id: item.id });
+  }
+  onPublishing(item){
+    if(item.kelimeler.length===0){
+      alert("Kelime Ekleyin");
+    } 
+    else{
+      if(!item.publish) {
+        this.clickSozlukPaylas(item);
+      }
+      else{
+        alert("Zaten Yayında");
+      }
+    }
+  }
   renderList() {
     console.log(this.props.loading);
     return (
@@ -178,14 +168,14 @@ transparent onPress={() =>
                           
                           <Body>
                           <Item>
-                          <Icon name='flag' />
+                          <Icon name='book' style={{ fontSize: 50, color: 'green', marginRight: 10 }} />
                           <H3> {item.name}</H3>
-                          <Icon name='checkmark' />
+                          {item.publish ? <Icon name='checkmark' style={{ marginLeft: 10, color: 'green' }} /> : null}
                           </Item>
                           <Text note>{item.lang}--{item.lang2}</Text>
                           </Body>
                           <Right>
-                          <Button transparent success onPress={() => { this.clickSozlukPaylas(item); }}>
+                          <Button transparent success onPress={() => { this.onPublishing(item)}}>
                             <Icon name='share' />
                           </Button>
                           </Right>   
@@ -193,10 +183,11 @@ transparent onPress={() =>
                           <CardItem >
                           <Body >
                               <Text style={{ fontSize: 20, color: 'grey', flex: 1 }}>{item.aciklama}</Text>
+                              <Text style={{ fontSize: 10, color: 'grey', flex: 1 }}>Kelime Sayısı:{item.kelimeler.length}</Text>
                           </Body>
                           </CardItem>
                           <CardItem footer>
-                          <Button iconLeft transparent primary onPress={() => { Actions.testForm({ id: item.id }); }}>
+                          <Button iconLeft transparent primary onPress={() => { this.onRedirectTest(item); }}>
                             <Icon name='flag' />
                             <Text>Test</Text>
                           </Button>
@@ -224,7 +215,7 @@ transparent onPress={() =>
               <Footer>
           <FooterTab>
             <Button vertical>
-              <Icon name="apps" />
+              <Icon name="home" />
               <Text>MySozlukler</Text>
             </Button>
             <Button vertical onPress={() => Actions.sozlukIndirilen()}>

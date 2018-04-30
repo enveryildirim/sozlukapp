@@ -43,6 +43,33 @@ name_error: false,
 kelime_error: false,
 cevap_error: false };
     }
+    clickKelimeSil() {
+      const { selectItem } = this.state;
+      const kelime = db.getKelime(selectItem);
+      Alert.alert(
+        'Uyarı',
+        'Kelime silinsin mi',
+        [
+          { text: 'Cancel', onPress: () => console.log('cancel'), style: 'cancel' },
+          { text: 'OK', onPress: () => { this.setState({ updateKelimeModal: false }); db.deleteKelime(kelime); alert('Silindi'); } },
+        ],
+        { cancelable: false }
+      );
+    }
+    clickSozlukSil() {
+      const { sozluk } = this.state;
+      let mesaj = 'Sözlük silinsin mi';
+      if (sozluk.publish) mesaj = 'Sözlük Yayında Yine Silinsin Mi';
+       Alert.alert(
+        'Uyarı',
+        mesaj,
+        [
+          { text: 'Cancel', onPress: () => console.log('cancel'), style: 'cancel' },
+          { text: 'OK', onPress: () => { this.setState({ updateModalVisible: false }); db.delete(sozluk); alert('Silindi'); } },
+        ],
+        { cancelable: false }
+      ); 
+    }
 clickKelimeEkle() {
     const { kelime, cevap, kaciklama } = this.state;
     const sozluk = this.state.sozluk;
@@ -78,7 +105,7 @@ clickKelimeUpdate() {
     this.setState({ cevap_error: true });
     return;
   }
-  //db.updateKelime({ id: selectItem, kelime: gkelime, cevap: gcevap, aciklama: gaciklama });
+  db.updateKelime({ id: selectItem, kelime: gkelime, cevap: gcevap, aciklama: gaciklama });
   alert('Kelime Güncellendi');
   this.setState({ updateKelimeModal: false, kelime_error: false, cevap_error: false });
 }
@@ -89,7 +116,7 @@ clickUpdateKelimeModalOpen(id) {
  alert(JSON.stringify(r));*/
 }
 clickKelimeDetay(item) {
-const detay = `Doğru: ${item.dogru} Yanlış: ${item.yanlis}  Toplam: ${item.toplam} \nİpucu: ${item.aciklama}`;
+const detay = `Doğru: ${item.dogru} Yanlış: ${item.yanlis}  \nToplam Gösterim: ${item.toplam} \nİpucu: ${item.aciklama}`;
   Alert.alert(
     'Kelime Bilgilendirme',
     detay,
@@ -126,7 +153,7 @@ renderUpdateKelimeModal() {
         </Item>
         <Button primary full onPress={() => this.clickKelimeUpdate()}><Text> Güncelle </Text></Button>
       <Button danger full onPress={() => this.setState({ updateKelimeModal: false, kelime_error: false, cevap_error: false })}><Text> Close </Text></Button>
-      <Button danger onPress={() => this.setState({ updateKelimeModal: false })}><Text> Delete </Text></Button>
+      <Button danger onPress={() => this.clickKelimeSil()}><Text> Delete </Text></Button>
       </Form>
       
       </KeyboardAwareScrollView>
@@ -211,7 +238,7 @@ renderEkleModal() {
           </Form>
           <Button primary full onPress={() => this.clickUpdateSozluk()}><Text> Update </Text></Button>
           <Button danger full onPress={() => this.setState({ updateModalVisible: false })}><Text> Close </Text></Button>
-          <Button danger onPress={() => this.setState({ updateModalVisible: false })}><Text> Delete </Text></Button>
+          <Button danger onPress={() => this.clickSozlukSil()}><Text> Delete </Text></Button>
           </KeyboardAwareScrollView>
       </Modal>
       );
@@ -232,23 +259,6 @@ renderEkleModal() {
         </Button>
         <Button transparent onPress={() => { this.setState({ updateModalVisible: true }); }}>
           <Icon name='build' />
-        </Button>
-        <Button
-      transparent 
-      onPress={() =>
-        ActionSheet.show(
-          {
-            options: BUTTONS,
-            cancelButtonIndex: CANCEL_INDEX,
-            destructiveButtonIndex: DESTRUCTIVE_INDEX,
-            title: 'Testing ActionSheet'
-          },
-          buttonIndex => {
-            this.setState({ clicked: BUTTONS[buttonIndex] });
-          }
-        )}
-        >
-          <Icon name='more' />
         </Button>
       </Right>
     </Header>
